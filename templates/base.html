@@ -2,30 +2,71 @@
 <html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
     <title>{% block title %}PyShort — Smart URL Shortener{% endblock %}</title>
     <meta name="description" content="PyShort is a high-performance, smart URL shortener with real-time click tracking, custom aliases, and instant QR code generation.">
+
+    <!-- PWA & Mobile Web App Meta Tags -->
+    <meta name="theme-color" content="#0b0f19" id="meta-theme-color">
+    <meta name="color-scheme" content="dark light">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PyShort">
+    <meta name="application-name" content="PyShort">
+    <meta name="msapplication-TileColor" content="#0b0f19">
+
+    <!-- Web App Manifest & App Icons -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='icons/favicon-32.png') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='icons/icon.svg') }}">
+
+    <!-- Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Design System CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <!-- Favicon SVG inline data uri -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366f1'><path d='M13.5 2L3 14h7v8l10.5-12h-7z'/></svg>">
 </head>
 <body>
+    <!-- Offline Alert Banner -->
+    <div id="offline-banner" class="offline-banner hidden" role="alert">
+        <span class="offline-icon">📶</span>
+        <span>You are currently offline. PyShort cached app shell is running.</span>
+    </div>
+
     <!-- Top Navigation Bar -->
     <header class="navbar">
         <div class="nav-container">
-            <a href="/" class="brand-logo" id="brand-link">
+            <a href="/#home" class="brand-logo" id="brand-link" data-tab-target="home">
                 <span class="logo-icon">⚡</span>
                 <span class="logo-text">Py<span class="highlight">Short</span></span>
-                <span class="version-tag">v1.0</span>
+                <span class="version-tag">PWA</span>
             </a>
 
+            <!-- Desktop Nav Items -->
+            <nav class="nav-links-desktop" id="desktop-nav" aria-label="Main Navigation">
+                <button type="button" class="nav-link active" data-tab-target="home" id="nav-home">
+                    <span>Home</span>
+                </button>
+                <button type="button" class="nav-link" data-tab-target="links" id="nav-recent">
+                    <span>Links</span>
+                </button>
+                <button type="button" class="nav-link" data-tab-target="analytics" id="nav-dashboard">
+                    <span>Analytics</span>
+                </button>
+                <button type="button" class="nav-link" data-tab-target="settings" id="nav-settings">
+                    <span>Settings</span>
+                </button>
+            </nav>
+
             <div class="nav-actions">
-                <a href="#dashboard" class="nav-link" id="nav-dashboard">Dashboard</a>
-                <a href="#recent" class="nav-link" id="nav-recent">Recent Links</a>
-                <a href="#features" class="nav-link" id="nav-features">Features</a>
+                <button type="button" class="btn btn-outline btn-sm pwa-install-btn hidden" id="header-install-btn" aria-label="Install PyShort App">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span>Install</span>
+                </button>
                 <button type="button" class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle dark/light theme" title="Toggle theme">
                     <span class="theme-icon sun-icon">☀️</span>
                     <span class="theme-icon moon-icon">🌙</span>
@@ -38,6 +79,39 @@
     <main class="main-content">
         {% block content %}{% endblock %}
     </main>
+
+    <!-- Mobile Fixed Bottom Navigation Bar -->
+    <nav class="bottom-nav" id="bottom-nav" aria-label="Mobile Navigation">
+        <button type="button" class="bottom-nav-item active" data-tab-target="home" id="bottom-nav-home" aria-label="Home">
+            <svg class="bottom-nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            <span class="bottom-nav-label">Home</span>
+        </button>
+        <button type="button" class="bottom-nav-item" data-tab-target="links" id="bottom-nav-links" aria-label="Links">
+            <svg class="bottom-nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+            <span class="bottom-nav-label">Links</span>
+        </button>
+        <button type="button" class="bottom-nav-item" data-tab-target="analytics" id="bottom-nav-analytics" aria-label="Analytics">
+            <svg class="bottom-nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="20" x2="18" y2="10"/>
+                <line x1="12" y1="20" x2="12" y2="4"/>
+                <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+            <span class="bottom-nav-label">Analytics</span>
+        </button>
+        <button type="button" class="bottom-nav-item" data-tab-target="settings" id="bottom-nav-settings" aria-label="Settings">
+            <svg class="bottom-nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            <span class="bottom-nav-label">Settings</span>
+        </button>
+    </nav>
 
     <!-- QR Code Preview Modal -->
     <div class="modal-backdrop" id="qr-modal" aria-hidden="true">
@@ -88,7 +162,7 @@
                 </div>
                 <div class="footer-stats-badge">
                     <span class="pulse-dot"></span>
-                    <span>System Operational • SQLite Storage Active</span>
+                    <span>PWA Operational • SQLite Storage Active</span>
                 </div>
             </div>
             <div class="footer-divider"></div>

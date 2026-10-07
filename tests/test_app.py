@@ -275,3 +275,36 @@ def test_pagination_navigation_and_metadata(client):
     assert large_res.status_code == 200
     large_data = large_res.get_json()
     assert large_data["pagination"]["per_page"] <= 100
+
+
+def test_pwa_manifest(client):
+    """Test that Web App Manifest is served with 200 OK and valid metadata."""
+    res = client.get("/manifest.json")
+    assert res.status_code == 200
+    assert "application/manifest+json" in res.mimetype or "json" in res.mimetype
+    data = res.get_json()
+    assert data["name"] == "PyShort — Smart URL Shortener"
+    assert data["short_name"] == "PyShort"
+    assert data["display"] == "standalone"
+    assert data["start_url"] == "/"
+    assert len(data["icons"]) >= 4
+
+
+def test_pwa_service_worker(client):
+    """Test that Service Worker is served with root scope permission."""
+    res = client.get("/sw.js")
+    assert res.status_code == 200
+    assert "javascript" in res.mimetype
+    assert res.headers.get("Service-Worker-Allowed") == "/"
+    assert b"pyshort-v1" in res.data
+
+
+def test_pwa_reserved_slugs(client):
+    """Test that PWA core files cannot be registered as custom aliases."""
+    for slug in ("manifest.json", "sw.js"):
+        res = client.post(
+            "/api/shorten",
+            json={"url": "https://example.com", "custom_alias": slug},
+        )
+        assert res.status_code == 400
+        assert res.get_json()["success"] is False

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b0f19" />
+      <stop offset="100%" stop-color="#162032" />
+    </linearGradient>
+    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+    <linearGradient id="boltGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818cf8" />
+      <stop offset="100%" stop-color="#6366f1" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background rounded card -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" stroke="rgba(99, 102, 241, 0.35)" stroke-width="8" />
+
+  <!-- Background subtle glow -->
+  <circle cx="256" cy="256" r="160" fill="#6366f1" opacity="0.18" filter="url(#glow)" />
+
+  <!-- Link Rings -->
+  <g stroke="url(#cyanGrad)" stroke-width="32" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="140" y="220" width="130" height="130" rx="42" />
+    <rect x="242" y="162" width="130" height="130" rx="42" />
+  </g>
+
+  <!-- Lightning Bolt -->
+  <polygon points="274,80 180,240 248,240 220,410 350,224 282,224" fill="url(#boltGrad)" filter="url(#glow)" />
+  <polygon points="268,110 198,236 250,236 232,374 326,228 278,228" fill="#ffffff" opacity="0.85" />
+</svg>

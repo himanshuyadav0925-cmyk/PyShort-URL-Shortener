@@ -61,6 +61,9 @@ RESERVED_CODES = {
     "favicon.ico",
     "robots.txt",
     "sitemap.xml",
+    "sw.js",
+    "manifest.json",
+    "manifest.webmanifest",
 }
 
 # Character pool for random short code generation (alphanumeric, case-sensitive)
@@ -410,6 +413,29 @@ def get_qr_code(short_code):
 def health_check():
     """Health check endpoint for deployment monitoring."""
     return jsonify({"status": "healthy", "service": "PyShort", "version": "1.0.0"})
+
+
+@app.route("/sw.js")
+def service_worker():
+    """Serves the PWA Service Worker with root scope authorization."""
+    response = send_file(
+        os.path.join(app.static_folder, "js", "sw.js"),
+        mimetype="application/javascript",
+    )
+    response.headers["Service-Worker-Allowed"] = "/"
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    return response
+
+
+@app.route("/manifest.json")
+def manifest():
+    """Serves the Web App Manifest."""
+    response = send_file(
+        os.path.join(app.static_folder, "manifest.json"),
+        mimetype="application/manifest+json",
+    )
+    response.headers["Cache-Control"] = "public, max-age=86400"
+    return response
 
 
 # ---------------------------------------------------------------------------

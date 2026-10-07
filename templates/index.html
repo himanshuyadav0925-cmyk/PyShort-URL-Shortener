@@ -3,340 +3,546 @@
 {% block content %}
 <div class="page-wrapper">
 
-    <!-- Hero Section -->
-    <section class="hero-section" id="hero">
-        <div class="hero-badge">
-            <span class="badge-sparkle">✨</span>
-            <span>Internship-Grade Engineering &amp; Design</span>
-        </div>
-        <h1 class="hero-title">
-            Smart, Fast &amp; Reliable <br>
-            <span class="gradient-text">URL Shortener</span>
-        </h1>
-        <p class="hero-subtitle">
-            Transform long, complex web links into clean, trackable short URLs. 
-            Monitor click traffic in real-time, generate instant QR codes, and customize your links.
-        </p>
+    <!-- ===================================================================
+         VIEW 1: HOME (URL Shortener & Quick Overview)
+         =================================================================== -->
+    <section class="app-view active" id="view-home" data-view="home">
+        <!-- Hero Section -->
+        <div class="hero-section" id="hero">
+            <div class="hero-badge">
+                <span class="badge-sparkle">✨</span>
+                <span>Fast, Smart &amp; Installable PWA</span>
+            </div>
+            <h1 class="hero-title">
+                Shorten, Share &amp; Track <br>
+                <span class="gradient-text">Smart URLs</span>
+            </h1>
+            <p class="hero-subtitle">
+                Transform long, complex web links into clean, trackable short URLs.
+                Monitor click traffic in real-time and generate instant QR codes.
+            </p>
 
-        <!-- Main Shortener Card -->
-        <div class="shortener-card" id="shortener-box">
-            <form id="shorten-form" class="shorten-form" novalidate>
-                <div class="input-container">
-                    <div class="input-icon-wrapper">
-                        <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <!-- Main Shortener Card -->
+            <div class="shortener-card" id="shortener-box">
+                <div class="card-header-compact">
+                    <span class="card-chip">⚡ Quick Shortener</span>
+                    <span class="card-hint">Paste link below</span>
+                </div>
+                <form id="shorten-form" class="shorten-form" novalidate>
+                    <div class="input-container">
+                        <div class="input-icon-wrapper">
+                            <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                            </svg>
+                        </div>
+                        <input
+                            type="url"
+                            id="long-url-input"
+                            name="url"
+                            class="url-input"
+                            placeholder="Paste your long URL here (e.g. https://github.com)..."
+                            required
+                            autocomplete="off"
+                            spellcheck="false"
+                            aria-label="Long URL to shorten"
+                        />
+                        <button type="submit" class="btn btn-primary btn-submit" id="submit-btn" aria-label="Shorten URL">
+                            <span class="btn-text">Shorten URL</span>
+                            <span class="btn-spinner" id="btn-spinner" aria-hidden="true"></span>
+                        </button>
+                    </div>
+
+                    <!-- Custom Alias Accordion / Toggle -->
+                    <div class="alias-toggle-row">
+                        <button type="button" class="alias-toggle-btn" id="alias-toggle-btn" aria-expanded="false" aria-controls="alias-wrapper">
+                            <svg class="toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                            <span>Add Custom Alias (Optional)</span>
+                        </button>
+                    </div>
+
+                    <div class="alias-input-wrapper hidden" id="alias-wrapper">
+                        <div class="alias-input-group">
+                            <span class="alias-prefix">{{ host_url }}</span>
+                            <input
+                                type="text"
+                                id="custom-alias-input"
+                                name="custom_alias"
+                                class="alias-input"
+                                placeholder="my-custom-name"
+                                maxlength="30"
+                                autocomplete="off"
+                                aria-label="Custom short code alias"
+                            />
+                        </div>
+                        <span class="input-hint">3-30 characters: letters, numbers, hyphens, and underscores only.</span>
+                    </div>
+                </form>
+
+                <!-- Result Card (Shown after shortening) -->
+                <div class="result-card hidden" id="result-card" role="region" aria-live="polite">
+                    <div class="result-header">
+                        <div class="result-status">
+                            <span class="status-icon">✓</span>
+                            <span class="status-text" id="result-status-text">Your Short Link is Ready!</span>
+                        </div>
+                        <span class="result-timestamp" id="result-timestamp">Just now</span>
+                    </div>
+
+                    <div class="result-body">
+                        <div class="short-url-box">
+                            <a href="#" target="_blank" rel="noopener noreferrer" class="short-url-link" id="result-short-url">
+                                <!-- populated by JS -->
+                            </a>
+                            <div class="result-actions">
+                                <button type="button" class="btn-action-chip" id="result-copy-btn" title="Copy to clipboard" aria-label="Copy short URL">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                    </svg>
+                                    <span class="action-text">Copy</span>
+                                </button>
+                                <button type="button" class="btn-action-chip" id="result-qr-btn" title="View QR Code" aria-label="View QR code">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                                        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                                    </svg>
+                                    <span class="action-text">QR</span>
+                                </button>
+                                <a href="#" target="_blank" rel="noopener noreferrer" class="btn-action-chip" id="result-visit-btn" title="Visit link" aria-label="Visit short URL">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                        <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                                    </svg>
+                                    <span class="action-text">Visit</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="result-details">
+                            <span class="detail-label">Destination:</span>
+                            <span class="detail-value truncate" id="result-original-url"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Home App Quick Glance Cards -->
+            <div class="home-quick-metrics">
+                <div class="quick-metric-card" data-tab-target="links">
+                    <div class="quick-metric-icon">🔗</div>
+                    <div class="quick-metric-data">
+                        <span class="quick-metric-count" id="home-metric-urls">{{ stats.total_urls }}</span>
+                        <span class="quick-metric-label">Active Links</span>
+                    </div>
+                    <span class="quick-metric-arrow">→</span>
+                </div>
+                <div class="quick-metric-card" data-tab-target="analytics">
+                    <div class="quick-metric-icon">📈</div>
+                    <div class="quick-metric-data">
+                        <span class="quick-metric-count" id="home-metric-clicks">{{ stats.total_clicks }}</span>
+                        <span class="quick-metric-label">Tracked Clicks</span>
+                    </div>
+                    <span class="quick-metric-arrow">→</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture & Highlights Showcase -->
+        <div class="features-section" id="features">
+            <div class="section-header text-center">
+                <h2 class="section-title">Engineered for Reliability &amp; Speed</h2>
+                <p class="section-subtitle">Core strengths of the PyShort PWA platform</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Safe Parameterized SQL</h3>
+                    <p>Protected against SQL injection vulnerabilities using parameterized queries and SQLite transactions.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Instant HTTP 302 Redirects</h3>
+                    <p>Zero-latency redirection with asynchronous click auditing, user-agent tracking, and timestamp updates.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Smart Collision Resolution</h3>
+                    <p>Cryptographically secure alphanumeric code generation with collision retry routines and custom aliases.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>Instant QR Code Engine</h3>
+                    <p>Dynamic high-contrast QR codes generated on-the-fly for every shortened link, ready for mobile scanning.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================================================================
+         VIEW 2: LINKS (History, Search, Pagination, Delete, QR)
+         =================================================================== -->
+    <section class="app-view" id="view-links" data-view="links">
+        <div class="recent-section" id="recent">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Recently Shortened URLs</h2>
+                    <p class="section-subtitle">Real-time list of generated links and click engagement</p>
+                </div>
+                <!-- Search & Filter Bar -->
+                <div class="search-box">
+                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <input
+                        type="text"
+                        id="search-input"
+                        class="search-input"
+                        placeholder="Filter by short code or URL..."
+                        autocomplete="off"
+                        aria-label="Filter shortened links"
+                    />
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="url-table" id="urls-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 28%;">Short Link</th>
+                            <th style="width: 36%;">Original URL</th>
+                            <th style="width: 12%;">Clicks</th>
+                            <th style="width: 14%;">Created</th>
+                            <th style="width: 10%; text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="urls-table-body">
+                        {% for item in recent_urls %}
+                        <tr id="row-{{ item.id }}" data-search="{{ item.short_code }} {{ item.original_url }}">
+                            <td>
+                                <div class="cell-short-link">
+                                    <a href="/{{ item.short_code }}" target="_blank" rel="noopener noreferrer" class="link-primary" id="short-link-{{ item.id }}">
+                                        {{ host_url }}{{ item.short_code }}
+                                    </a>
+                                    {% if item.is_custom %}
+                                        <span class="badge badge-custom" title="Custom alias">Custom</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="cell-original-url">
+                                    <a href="{{ item.original_url }}" target="_blank" rel="noopener noreferrer" class="link-secondary truncate" title="{{ item.original_url }}">
+                                        {{ item.original_url }}
+                                    </a>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="clicks-badge">
+                                    <span class="dot"></span>
+                                    <span id="clicks-count-{{ item.id }}">{{ item.clicks }}</span>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="cell-date" title="{{ item.created_at }}">{{ item.created_at[:10] }}</span>
+                            </td>
+                            <td style="text-align: right;">
+                                <div class="action-buttons-group">
+                                    <button type="button" class="btn-table-action" onclick="copyShortUrl('{{ host_url }}{{ item.short_code }}', this)" title="Copy short URL" aria-label="Copy short link">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                    </button>
+                                    <button type="button" class="btn-table-action" onclick="openQrModal('{{ item.short_code }}', '{{ host_url }}{{ item.short_code }}')" title="Show QR code" aria-label="View QR code">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                                    </button>
+                                    <a href="/{{ item.short_code }}" target="_blank" rel="noopener noreferrer" class="btn-table-action" title="Open and test redirect" aria-label="Visit link">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                                    </a>
+                                    <button type="button" class="btn-table-action btn-delete" onclick="deleteLink({{ item.id }})" title="Delete link" aria-label="Delete link">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <!-- Empty State -->
+                <div class="empty-state {% if recent_urls %}hidden{% endif %}" id="empty-state">
+                    <div class="empty-icon">🔗</div>
+                    <h3>No Shortened URLs Yet</h3>
+                    <p>Paste a link on the Home screen to generate your first trackable short URL!</p>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div class="pagination-bar" id="pagination-controls" data-page="{{ pagination.page }}" data-total-pages="{{ pagination.total_pages }}" data-per-page="{{ pagination.per_page }}">
+                    <div class="pagination-info" id="pagination-info">
+                        Showing Page <span id="current-page-num">{{ pagination.page }}</span> of <span id="total-pages-num">{{ pagination.total_pages }}</span>
+                        (<span id="total-urls-count">{{ pagination.total_count }}</span> total links)
+                    </div>
+                    <div class="pagination-actions">
+                        <button type="button" class="btn btn-secondary btn-pagination" id="prev-page-btn" {% if not pagination.has_prev %}disabled{% endif %} title="Previous Page" aria-label="Previous Page">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                            <span>Previous</span>
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-pagination" id="next-page-btn" {% if not pagination.has_next %}disabled{% endif %} title="Next Page" aria-label="Next Page">
+                            <span>Next</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================================================================
+         VIEW 3: ANALYTICS (Real Metrics Dashboard)
+         =================================================================== -->
+    <section class="app-view" id="view-analytics" data-view="analytics">
+        <div class="dashboard-section" id="dashboard">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Performance Analytics</h2>
+                    <p class="section-subtitle">Real-time usage metrics recorded by the SQLite database</p>
+                </div>
+                <button type="button" class="btn btn-secondary btn-refresh" id="refresh-stats-btn" title="Refresh metrics" aria-label="Refresh analytics data">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                    </svg>
+                    <span>Refresh</span>
+                </button>
+            </div>
+
+            <div class="stats-grid">
+                <!-- Stat Card 1 -->
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper stat-indigo">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
                             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
                         </svg>
                     </div>
-                    <input 
-                        type="url" 
-                        id="long-url-input" 
-                        name="url" 
-                        class="url-input" 
-                        placeholder="Paste your long URL here (e.g., https://github.com/my-internship-portfolio)..." 
-                        required
-                        autocomplete="off"
-                        spellcheck="false"
-                    />
-                    <button type="submit" class="btn btn-primary btn-submit" id="submit-btn">
-                        <span class="btn-text">Shorten URL</span>
-                        <span class="btn-spinner" id="btn-spinner" aria-hidden="true"></span>
-                    </button>
+                    <div class="stat-info">
+                        <span class="stat-label">Total Shortened URLs</span>
+                        <span class="stat-value" id="stat-total-urls">{{ stats.total_urls }}</span>
+                    </div>
                 </div>
 
-                <!-- Custom Alias Accordion / Toggle -->
-                <div class="alias-toggle-row">
-                    <button type="button" class="alias-toggle-btn" id="alias-toggle-btn">
-                        <svg class="toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6 9 12 15 18 9"></polyline>
+                <!-- Stat Card 2 -->
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper stat-cyan">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
                         </svg>
-                        <span>Add Custom Alias (Optional)</span>
-                    </button>
-                </div>
-
-                <div class="alias-input-wrapper hidden" id="alias-wrapper">
-                    <div class="alias-input-group">
-                        <span class="alias-prefix">{{ host_url }}</span>
-                        <input 
-                            type="text" 
-                            id="custom-alias-input" 
-                            name="custom_alias" 
-                            class="alias-input" 
-                            placeholder="my-custom-name" 
-                            maxlength="30"
-                            autocomplete="off"
-                        />
                     </div>
-                    <span class="input-hint">3-30 characters: letters, numbers, hyphens, and underscores only.</span>
-                </div>
-            </form>
-
-            <!-- Result Card (Shown after shortening) -->
-            <div class="result-card hidden" id="result-card">
-                <div class="result-header">
-                    <div class="result-status">
-                        <span class="status-icon">✓</span>
-                        <span class="status-text" id="result-status-text">Your Short Link is Ready!</span>
+                    <div class="stat-info">
+                        <span class="stat-label">Total Clicks Tracked</span>
+                        <span class="stat-value" id="stat-total-clicks">{{ stats.total_clicks }}</span>
                     </div>
-                    <span class="result-timestamp" id="result-timestamp">Just now</span>
                 </div>
 
-                <div class="result-body">
-                    <div class="short-url-box">
-                        <a href="#" target="_blank" rel="noopener noreferrer" class="short-url-link" id="result-short-url">
-                            <!-- populated by JS -->
-                        </a>
-                        <div class="result-actions">
-                            <button type="button" class="btn-icon" id="result-copy-btn" title="Copy to clipboard">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                                </svg>
-                                <span class="action-text">Copy</span>
-                            </button>
-                            <button type="button" class="btn-icon" id="result-qr-btn" title="View QR Code">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                                    <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-                                </svg>
-                                <span class="action-text">QR Code</span>
-                            </button>
-                            <a href="#" target="_blank" rel="noopener noreferrer" class="btn-icon" id="result-visit-btn" title="Visit link">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                                    <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
-                                </svg>
-                                <span class="action-text">Visit</span>
-                            </a>
+                <!-- Stat Card 3 -->
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper stat-emerald">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+                            <line x1="6" y1="20" x2="6" y2="14"/>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Avg. Clicks / Link</span>
+                        <span class="stat-value" id="stat-avg-clicks">{{ stats.avg_clicks }}</span>
+                    </div>
+                </div>
+
+                <!-- Stat Card 4 -->
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper stat-amber">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Most Active Link</span>
+                        <span class="stat-value-sub" id="stat-top-link">
+                            {% if stats.most_active %}
+                                {{ stats.most_active.clicks }} clicks ({{ stats.most_active.short_code }})
+                            {% else %}
+                                No clicks yet
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Insights Card -->
+            <div class="analytics-detail-card">
+                <div class="detail-card-header">
+                    <div class="detail-card-title">
+                        <span class="pulse-dot"></span>
+                        <h3>Real-Time Tracking Status</h3>
+                    </div>
+                    <span class="badge badge-success">Live SQLite Audit</span>
+                </div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-name">Audit Logging</span>
+                        <span class="detail-val">Active (User-Agent, Referrer, Timestamps)</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-name">Redirect Protocol</span>
+                        <span class="detail-val">HTTP 302 Found (Zero-latency bounce)</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-name">Database Backend</span>
+                        <span class="detail-val">SQLite with ACID transactions &amp; Indexes</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-name">Deduplication</span>
+                        <span class="detail-val">Smart reuse of non-custom URLs</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================================================================
+         VIEW 4: SETTINGS (Theme, PWA Installation, App Specs)
+         =================================================================== -->
+    <section class="app-view" id="view-settings" data-view="settings">
+        <div class="settings-section" id="settings">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">App Settings &amp; Info</h2>
+                    <p class="section-subtitle">Customize theme, install the progressive web app, and view details</p>
+                </div>
+            </div>
+
+            <div class="settings-grid">
+                <!-- Theme Settings Card -->
+                <div class="settings-card">
+                    <div class="settings-card-header">
+                        <div class="settings-icon">🌓</div>
+                        <div>
+                            <h3>Appearance &amp; Theme</h3>
+                            <p>Select your preferred visual style</p>
                         </div>
                     </div>
-
-                    <div class="result-details">
-                        <span class="detail-label">Original Destination:</span>
-                        <span class="detail-value truncate" id="result-original-url"></span>
+                    <div class="theme-options-group">
+                        <button type="button" class="theme-option-btn active" id="theme-btn-dark" data-theme-val="dark">
+                            <span class="theme-opt-icon">🌙</span>
+                            <div class="theme-opt-text">
+                                <span class="theme-opt-title">Dark Mode</span>
+                                <span class="theme-opt-desc">Deep slate &amp; glowing neon</span>
+                            </div>
+                        </button>
+                        <button type="button" class="theme-option-btn" id="theme-btn-light" data-theme-val="light">
+                            <span class="theme-opt-icon">☀️</span>
+                            <div class="theme-opt-text">
+                                <span class="theme-opt-title">Light Mode</span>
+                                <span class="theme-opt-desc">Crisp white &amp; high contrast</span>
+                            </div>
+                        </button>
                     </div>
                 </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Real-Time Analytics / Statistics Section -->
-    <section class="dashboard-section" id="dashboard">
-        <div class="section-header">
-            <div>
-                <h2 class="section-title">Performance Analytics</h2>
-                <p class="section-subtitle">Real-time usage metrics recorded by the SQLite database</p>
-            </div>
-            <button type="button" class="btn btn-secondary btn-refresh" id="refresh-stats-btn" title="Refresh metrics">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-                </svg>
-                <span>Refresh</span>
-            </button>
-        </div>
-
-        <div class="stats-grid">
-            <!-- Stat Card 1 -->
-            <div class="stat-card">
-                <div class="stat-icon-wrapper stat-indigo">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                    </svg>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-label">Total Shortened URLs</span>
-                    <span class="stat-value" id="stat-total-urls">{{ stats.total_urls }}</span>
-                </div>
-            </div>
-
-            <!-- Stat Card 2 -->
-            <div class="stat-card">
-                <div class="stat-icon-wrapper stat-cyan">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
-                    </svg>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-label">Total Clicks Tracked</span>
-                    <span class="stat-value" id="stat-total-clicks">{{ stats.total_clicks }}</span>
-                </div>
-            </div>
-
-            <!-- Stat Card 3 -->
-            <div class="stat-card">
-                <div class="stat-icon-wrapper stat-emerald">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
-                        <line x1="6" y1="20" x2="6" y2="14"/>
-                    </svg>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-label">Avg. Clicks / Link</span>
-                    <span class="stat-value" id="stat-avg-clicks">{{ stats.avg_clicks }}</span>
-                </div>
-            </div>
-
-            <!-- Stat Card 4 -->
-            <div class="stat-card">
-                <div class="stat-icon-wrapper stat-amber">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                    </svg>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-label">Most Active Link</span>
-                    <span class="stat-value-sub" id="stat-top-link">
-                        {% if stats.most_active %}
-                            {{ stats.most_active.clicks }} clicks ({{ stats.most_active.short_code }})
-                        {% else %}
-                            No clicks yet
-                        {% endif %}
-                    </span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Recent URLs Section -->
-    <section class="recent-section" id="recent">
-        <div class="section-header">
-            <div>
-                <h2 class="section-title">Recently Shortened URLs</h2>
-                <p class="section-subtitle">Real-time list of generated links and click engagement</p>
-            </div>
-            <!-- Search & Filter Bar -->
-            <div class="search-box">
-                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                </svg>
-                <input 
-                    type="text" 
-                    id="search-input" 
-                    class="search-input" 
-                    placeholder="Filter by short code or original URL..." 
-                    autocomplete="off"
-                />
-            </div>
-        </div>
-
-        <div class="table-container">
-            <table class="url-table" id="urls-table">
-                <thead>
-                    <tr>
-                        <th style="width: 28%;">Short Link</th>
-                        <th style="width: 36%;">Original URL</th>
-                        <th style="width: 12%;">Clicks</th>
-                        <th style="width: 14%;">Created</th>
-                        <th style="width: 10%; text-align: right;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="urls-table-body">
-                    {% for item in recent_urls %}
-                    <tr id="row-{{ item.id }}" data-search="{{ item.short_code }} {{ item.original_url }}">
-                        <td>
-                            <div class="cell-short-link">
-                                <a href="/{{ item.short_code }}" target="_blank" rel="noopener noreferrer" class="link-primary" id="short-link-{{ item.id }}">
-                                    {{ host_url }}{{ item.short_code }}
-                                </a>
-                                {% if item.is_custom %}
-                                    <span class="badge badge-custom" title="Custom alias">Custom</span>
-                                {% endif %}
+                <!-- PWA Installation Card -->
+                <div class="settings-card">
+                    <div class="settings-card-header">
+                        <div class="settings-icon">📲</div>
+                        <div>
+                            <h3>Progressive Web App</h3>
+                            <p>Install PyShort as a standalone mobile or desktop app</p>
+                        </div>
+                    </div>
+                    <div class="pwa-status-box">
+                        <div class="pwa-status-indicator">
+                            <span class="status-indicator-dot" id="pwa-indicator-dot"></span>
+                            <span class="pwa-status-label" id="pwa-status-text">Detecting install status...</span>
+                        </div>
+                        <p class="pwa-status-desc" id="pwa-status-desc">
+                            PyShort can be installed directly onto your home screen or desktop without using an app store.
+                        </p>
+                        <div class="pwa-install-actions">
+                            <button type="button" class="btn btn-primary pwa-install-trigger hidden" id="settings-install-btn">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                <span>Install PyShort App</span>
+                            </button>
+                        </div>
+                        <div class="pwa-install-guide">
+                            <div class="guide-item">
+                                <span class="guide-badge">iOS Safari</span>
+                                <span class="guide-text">Tap the <strong>Share</strong> button, then select <strong>"Add to Home Screen"</strong>.</span>
                             </div>
-                        </td>
-                        <td>
-                            <div class="cell-original-url">
-                                <a href="{{ item.original_url }}" target="_blank" rel="noopener noreferrer" class="link-secondary truncate" title="{{ item.original_url }}">
-                                    {{ item.original_url }}
-                                </a>
+                            <div class="guide-item">
+                                <span class="guide-badge">Android / Chrome</span>
+                                <span class="guide-text">Tap the menu (⋮) or click <strong>Install</strong> in the address bar.</span>
                             </div>
-                        </td>
-                        <td>
-                            <span class="clicks-badge">
-                                <span class="dot"></span>
-                                <span id="clicks-count-{{ item.id }}">{{ item.clicks }}</span>
-                            </span>
-                        </td>
-                        <td>
-                            <span class="cell-date" title="{{ item.created_at }}">{{ item.created_at[:10] }}</span>
-                        </td>
-                        <td style="text-align: right;">
-                            <div class="action-buttons-group">
-                                <button type="button" class="btn-table-action" onclick="copyShortUrl('{{ host_url }}{{ item.short_code }}', this)" title="Copy short URL">
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                                </button>
-                                <button type="button" class="btn-table-action" onclick="openQrModal('{{ item.short_code }}', '{{ host_url }}{{ item.short_code }}')" title="Show QR code">
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                                </button>
-                                <a href="/{{ item.short_code }}" target="_blank" rel="noopener noreferrer" class="btn-table-action" title="Open and test redirect">
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                                </a>
-                                <button type="button" class="btn-table-action btn-delete" onclick="deleteLink({{ item.id }})" title="Delete link">
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-
-            <!-- Empty State -->
-            <div class="empty-state {% if recent_urls %}hidden{% endif %}" id="empty-state">
-                <div class="empty-icon">🔗</div>
-                <h3>No Shortened URLs Yet</h3>
-                <p>Paste a link above to generate your first trackable short URL!</p>
-            </div>
-
-            <!-- Pagination Controls -->
-            <div class="pagination-bar" id="pagination-controls" data-page="{{ pagination.page }}" data-total-pages="{{ pagination.total_pages }}" data-per-page="{{ pagination.per_page }}">
-                <div class="pagination-info" id="pagination-info">
-                    Showing Page <span id="current-page-num">{{ pagination.page }}</span> of <span id="total-pages-num">{{ pagination.total_pages }}</span>
-                    (<span id="total-urls-count">{{ pagination.total_count }}</span> total links)
+                        </div>
+                    </div>
                 </div>
-                <div class="pagination-actions">
-                    <button type="button" class="btn btn-secondary btn-pagination" id="prev-page-btn" {% if not pagination.has_prev %}disabled{% endif %} title="Previous Page">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                        <span>Previous</span>
-                    </button>
-                    <button type="button" class="btn btn-secondary btn-pagination" id="next-page-btn" {% if not pagination.has_next %}disabled{% endif %} title="Next Page">
-                        <span>Next</span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    </button>
+
+                <!-- Application Information Card -->
+                <div class="settings-card">
+                    <div class="settings-card-header">
+                        <div class="settings-icon">⚡</div>
+                        <div>
+                            <h3>Application Details</h3>
+                            <p>PyShort — Smart URL Shortener</p>
+                        </div>
+                    </div>
+                    <div class="app-info-list">
+                        <div class="info-row">
+                            <span class="info-label">App Version</span>
+                            <span class="info-value">v1.0.0 (PWA Enabled)</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Technology Stack</span>
+                            <span class="info-value">Python, Flask, SQLite, Vanilla JS</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Service Worker</span>
+                            <span class="info-value" id="sw-status-label">Active &amp; Caching Shell</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Storage Architecture</span>
+                            <span class="info-value">ACID Parameterized SQLite</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Architecture & Features Showcase -->
-    <section class="features-section" id="features">
-        <div class="section-header text-center">
-            <h2 class="section-title">Engineered for Performance &amp; Simplicity</h2>
-            <p class="section-subtitle">Key architectural highlights of the PyShort project</p>
-        </div>
-
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">🛡️</div>
-                <h3>Safe Parameterized SQL</h3>
-                <p>Protected against SQL injection vulnerabilities using parameterized queries and SQLite transactions.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">⚡</div>
-                <h3>Instant HTTP 302 Redirects</h3>
-                <p>Zero-latency redirection with asynchronous click auditing, user-agent tracking, and timestamp updates.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🎯</div>
-                <h3>Smart Collision Resolution</h3>
-                <p>Cryptographically secure alphanumeric code generation with collision retry routines and custom aliases.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">📱</div>
-                <h3>Instant QR Code Engine</h3>
-                <p>Dynamic high-contrast QR codes generated on-the-fly for every shortened link, ready for mobile scanning.</p>
+                <!-- Security & Privacy Card -->
+                <div class="settings-card">
+                    <div class="settings-card-header">
+                        <div class="settings-icon">🛡️</div>
+                        <div>
+                            <h3>Security &amp; Privacy</h3>
+                            <p>Hardened URL validation and protection</p>
+                        </div>
+                    </div>
+                    <ul class="security-features-list">
+                        <li>
+                            <span class="sec-icon">✓</span>
+                            <span><strong>SSRF Protection:</strong> Blocks localhost, loopback, private ranges, and non-web schemes.</span>
+                        </li>
+                        <li>
+                            <span class="sec-icon">✓</span>
+                            <span><strong>SQL Injection Free:</strong> 100% Parameterized queries across all database operations.</span>
+                        </li>
+                        <li>
+                            <span class="sec-icon">✓</span>
+                            <span><strong>Safe Redirects:</strong> Prevents self-referencing redirect loops.</span>
+                        </li>
+                        <li>
+                            <span class="sec-icon">✓</span>
+                            <span><strong>Zero Bloat:</strong> Lightweight vanilla front-end with zero ad trackers or tracking scripts.</span>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     </section>
