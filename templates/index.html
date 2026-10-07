@@ -289,6 +289,24 @@
                 <h3>No Shortened URLs Yet</h3>
                 <p>Paste a link above to generate your first trackable short URL!</p>
             </div>
+
+            <!-- Pagination Controls -->
+            <div class="pagination-bar" id="pagination-controls" data-page="{{ pagination.page }}" data-total-pages="{{ pagination.total_pages }}" data-per-page="{{ pagination.per_page }}">
+                <div class="pagination-info" id="pagination-info">
+                    Showing Page <span id="current-page-num">{{ pagination.page }}</span> of <span id="total-pages-num">{{ pagination.total_pages }}</span>
+                    (<span id="total-urls-count">{{ pagination.total_count }}</span> total links)
+                </div>
+                <div class="pagination-actions">
+                    <button type="button" class="btn btn-secondary btn-pagination" id="prev-page-btn" {% if not pagination.has_prev %}disabled{% endif %} title="Previous Page">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        <span>Previous</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-pagination" id="next-page-btn" {% if not pagination.has_next %}disabled{% endif %} title="Next Page">
+                        <span>Next</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                </div>
+            </div>
         </div>
     </section>
 

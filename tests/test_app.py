@@ -176,3 +176,102 @@ def test_qr_code_generation(client):
     assert qr_res.status_code == 200
     assert qr_res.mimetype == "image/png"
     assert len(qr_res.data) > 0
+
+
+def test_dangerous_url_schemes(client):
+    """Test rejection of dangerous non-web schemes."""
+    dangerous_urls = [
+        "javascript:alert('xss')",
+        "javascript://test",
+        "data:text/html,<script>alert(1)</script>",
+        "file:///etc/passwd",
+        "file://C:/Windows/win.ini",
+        "vbscript:msgbox('hello')",
+    ]
+    for bad_url in dangerous_urls:
+        res = client.post("/api/shorten", json={"url": bad_url})
+        assert res.status_code == 400, f"Expected 400 for {bad_url}"
+        data = res.get_json()
+        assert data["success"] is False
+
+
+def test_private_and_local_urls_rejected(client):
+    """Test rejection of private, link-local, and localhost network addresses."""
+    private_urls = [
+        "http://127.0.0.1",
+        "http://127.0.0.1:8080/admin",
+        "http://10.0.0.1",
+        "http://10.255.0.1/dashboard",
+        "http://172.16.0.1",
+        "http://172.31.255.254",
+        "http://192.168.1.1",
+        "http://192.168.0.100/router",
+        "http://169.254.169.254/latest/meta-data/",
+        "http://localhost",
+        "http://localhost:3000",
+        "https://app.localhost",
+    ]
+    for priv_url in private_urls:
+        res = client.post("/api/shorten", json={"url": priv_url})
+        assert res.status_code == 400, f"Expected 400 for {priv_url}"
+        data = res.get_json()
+        assert data["success"] is False
+
+
+def test_pagination_navigation_and_metadata(client):
+    """Test pagination retrieval, metadata correctness, and disjoint pages."""
+    # Create 35 distinct URLs to span multiple pages
+    total_created = 35
+    for i in range(total_created):
+        res = client.post("/api/shorten", json={"url": f"https://example-{i}.org/page"})
+        assert res.status_code in (200, 201)
+
+    # 1. Page 1 (per_page = 10)
+    p1_res = client.get("/api/links?page=1&per_page=10")
+    assert p1_res.status_code == 200
+    p1_data = p1_res.get_json()
+    assert len(p1_data["links"]) == 10
+    assert p1_data["pagination"]["page"] == 1
+    assert p1_data["pagination"]["per_page"] == 10
+    assert p1_data["pagination"]["total_count"] == total_created
+    assert p1_data["pagination"]["total_pages"] == 4
+    assert p1_data["pagination"]["has_next"] is True
+    assert p1_data["pagination"]["has_prev"] is False
+
+    # 2. Page 2 (per_page = 10)
+    p2_res = client.get("/api/links?page=2&per_page=10")
+    assert p2_res.status_code == 200
+    p2_data = p2_res.get_json()
+    assert len(p2_data["links"]) == 10
+    assert p2_data["pagination"]["page"] == 2
+    assert p2_data["pagination"]["has_next"] is True
+    assert p2_data["pagination"]["has_prev"] is True
+
+    # Confirm page 1 and page 2 contain disjoint records (no duplicate items)
+    p1_ids = {u["id"] for u in p1_data["links"]}
+    p2_ids = {u["id"] for u in p2_data["links"]}
+    assert p1_ids.isdisjoint(p2_ids)
+
+    # 3. Final Page 4 (per_page = 10 -> remaining 5 records)
+    p4_res = client.get("/api/links?page=4&per_page=10")
+    assert p4_res.status_code == 200
+    p4_data = p4_res.get_json()
+    assert len(p4_data["links"]) == 5
+    assert p4_data["pagination"]["page"] == 4
+    assert p4_data["pagination"]["has_next"] is False
+    assert p4_data["pagination"]["has_prev"] is True
+    p4_ids = {u["id"] for u in p4_data["links"]}
+    assert p4_ids.isdisjoint(p1_ids)
+    assert p4_ids.isdisjoint(p2_ids)
+
+    # 4. Safe handling of invalid page/per_page values
+    inv_res = client.get("/api/links?page=-10&per_page=-5")
+    assert inv_res.status_code == 200
+    inv_data = inv_res.get_json()
+    assert inv_data["pagination"]["page"] == 1
+    assert inv_data["pagination"]["per_page"] >= 1
+
+    large_res = client.get("/api/links?page=1&per_page=5000")
+    assert large_res.status_code == 200
+    large_data = large_res.get_json()
+    assert large_data["pagination"]["per_page"] <= 100

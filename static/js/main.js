@@ -28,10 +28,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const statTopLink = document.getElementById('stat-top-link');
     const refreshStatsBtn = document.getElementById('refresh-stats-btn');
 
-    // Table elements
+    // Table & Pagination elements
     const urlsTableBody = document.getElementById('urls-table-body');
     const emptyState = document.getElementById('empty-state');
     const searchInput = document.getElementById('search-input');
+    const paginationControls = document.getElementById('pagination-controls');
+    const currentPageNum = document.getElementById('current-page-num');
+    const totalPagesNum = document.getElementById('total-pages-num');
+    const totalUrlsCount = document.getElementById('total-urls-count');
+    const prevPageBtn = document.getElementById('prev-page-btn');
+    const nextPageBtn = document.getElementById('next-page-btn');
+
+    let currentPage = parseInt(paginationControls?.getAttribute('data-page') || '1', 10);
+    let totalPages = parseInt(paginationControls?.getAttribute('data-total-pages') || '1', 10);
+    const perPage = parseInt(paginationControls?.getAttribute('data-per-page') || '25', 10);
 
     // QR Modal elements
     const qrModal = document.getElementById('qr-modal');
@@ -192,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // Table Row Operations
+    // Table Row & Pagination Operations
     // =========================================================================
     function prependTableRow(item) {
         if (emptyState) emptyState.classList.add('hidden');
@@ -200,13 +210,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const dateStr = (item.created_at || '').substring(0, 10) || 'Today';
         const tr = document.createElement('tr');
-        tr.id = `row-${item.short_code}`;
+        tr.id = `row-${item.id || item.short_code}`;
         tr.setAttribute('data-search', `${item.short_code} ${item.original_url}`);
 
         tr.innerHTML = `
             <td>
                 <div class="cell-short-link">
-                    <a href="/${item.short_code}" target="_blank" rel="noopener noreferrer" class="link-primary">
+                    <a href="/${item.short_code}" target="_blank" rel="noopener noreferrer" class="link-primary" id="short-link-${item.id || item.short_code}">
                         ${item.short_url}
                     </a>
                     ${item.is_custom ? '<span class="badge badge-custom" title="Custom alias">Custom</span>' : ''}
@@ -222,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td>
                 <span class="clicks-badge">
                     <span class="dot"></span>
-                    <span>${item.clicks || 0}</span>
+                    <span id="clicks-count-${item.id || item.short_code}">${item.clicks || 0}</span>
                 </span>
             </td>
             <td>
@@ -239,11 +249,74 @@ document.addEventListener('DOMContentLoaded', () => {
                     <a href="/${item.short_code}" target="_blank" rel="noopener noreferrer" class="btn-table-action" title="Open and test redirect">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                     </a>
+                    <button type="button" class="btn-table-action btn-delete" onclick="deleteLink(${item.id})" title="Delete link">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    </button>
                 </div>
             </td>
         `;
 
         urlsTableBody.insertBefore(tr, urlsTableBody.firstChild);
+
+        if (totalUrlsCount) {
+            const count = parseInt(totalUrlsCount.textContent || '0', 10);
+            totalUrlsCount.textContent = count + 1;
+        }
+    }
+
+    function updatePaginationUI(pagination) {
+        if (!pagination || !paginationControls) return;
+        currentPage = pagination.page;
+        totalPages = pagination.total_pages;
+
+        paginationControls.setAttribute('data-page', currentPage);
+        paginationControls.setAttribute('data-total-pages', totalPages);
+
+        if (currentPageNum) currentPageNum.textContent = currentPage;
+        if (totalPagesNum) totalPagesNum.textContent = totalPages;
+        if (totalUrlsCount) totalUrlsCount.textContent = pagination.total_count;
+
+        if (prevPageBtn) prevPageBtn.disabled = !pagination.has_prev;
+        if (nextPageBtn) nextPageBtn.disabled = !pagination.has_next;
+    }
+
+    async function loadPage(page) {
+        try {
+            const res = await fetch(`/api/links?page=${page}&per_page=${perPage}`);
+            const data = await res.json();
+            if (data.success && data.links) {
+                if (!urlsTableBody) return;
+                urlsTableBody.innerHTML = '';
+                for (let i = data.links.length - 1; i >= 0; i--) {
+                    prependTableRow(data.links[i]);
+                }
+                if (data.pagination) {
+                    updatePaginationUI(data.pagination);
+                }
+                if (searchInput && searchInput.value.trim()) {
+                    filterTableRows(searchInput.value.toLowerCase().trim());
+                }
+            }
+        } catch (e) {
+            console.error('Failed to load page:', e);
+            showToast('Failed to load page links', 'error');
+        }
+    }
+
+    if (prevPageBtn) {
+        prevPageBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                loadPage(currentPage - 1);
+            }
+        });
+    }
+
+    if (nextPageBtn) {
+        nextPageBtn.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                loadPage(currentPage + 1);
+            }
+        });
     }
 
     // =========================================================================
@@ -283,37 +356,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // Search / Filter Filter Logic
+    // Search / Filter Logic
     // =========================================================================
+    function filterTableRows(query) {
+        const rows = urlsTableBody ? urlsTableBody.querySelectorAll('tr') : [];
+        let visibleCount = 0;
+
+        rows.forEach((row) => {
+            const searchData = (row.getAttribute('data-search') || '').toLowerCase();
+            if (searchData.includes(query)) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        if (emptyState) {
+            if (visibleCount === 0 && rows.length > 0) {
+                emptyState.classList.remove('hidden');
+                emptyState.querySelector('h3').textContent = 'No Matching Links';
+                emptyState.querySelector('p').textContent = 'Try searching with a different keyword or short code.';
+            } else if (rows.length === 0) {
+                emptyState.classList.remove('hidden');
+                emptyState.querySelector('h3').textContent = 'No Shortened URLs Yet';
+                emptyState.querySelector('p').textContent = 'Paste a link above to generate your first trackable short URL!';
+            } else {
+                emptyState.classList.add('hidden');
+            }
+        }
+    }
+
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase().trim();
-            const rows = urlsTableBody ? urlsTableBody.querySelectorAll('tr') : [];
-            let visibleCount = 0;
-
-            rows.forEach((row) => {
-                const searchData = (row.getAttribute('data-search') || '').toLowerCase();
-                if (searchData.includes(query)) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-
-            if (emptyState) {
-                if (visibleCount === 0 && rows.length > 0) {
-                    emptyState.classList.remove('hidden');
-                    emptyState.querySelector('h3').textContent = 'No Matching Links';
-                    emptyState.querySelector('p').textContent = 'Try searching with a different keyword or short code.';
-                } else if (rows.length === 0) {
-                    emptyState.classList.remove('hidden');
-                    emptyState.querySelector('h3').textContent = 'No Shortened URLs Yet';
-                    emptyState.querySelector('p').textContent = 'Paste a link above to generate your first trackable short URL!';
-                } else {
-                    emptyState.classList.add('hidden');
-                }
-            }
+            filterTableRows(e.target.value.toLowerCase().trim());
         });
     }
 
@@ -422,9 +498,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 row.style.transform = 'translateX(20px)';
                 setTimeout(() => {
                     row.remove();
+                    if (totalUrlsCount) {
+                        const count = parseInt(totalUrlsCount.textContent || '0', 10);
+                        if (count > 0) totalUrlsCount.textContent = count - 1;
+                    }
                     const remainingRows = urlsTableBody ? urlsTableBody.querySelectorAll('tr').length : 0;
-                    if (remainingRows === 0 && emptyState) {
-                        emptyState.classList.remove('hidden');
+                    if (remainingRows === 0) {
+                        if (currentPage > 1) {
+                            loadPage(currentPage - 1);
+                        } else if (emptyState) {
+                            emptyState.classList.remove('hidden');
+                        }
                     }
                 }, 200);
             }

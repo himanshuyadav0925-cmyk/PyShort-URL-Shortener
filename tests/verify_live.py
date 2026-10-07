@@ -108,8 +108,35 @@ def test_live():
         assert e.code == 400
         print("    Invalid URL rejected with 400 as expected.")
 
+    print("[10] Testing pagination endpoint and metadata...")
+    req_pag = urllib.request.Request(f"{BASE_URL}/api/links?page=1&per_page=5")
+    with urllib.request.urlopen(req_pag) as resp:
+        pag_data = json.loads(resp.read().decode("utf-8"))
+        assert pag_data["success"] is True
+        assert "pagination" in pag_data
+        assert pag_data["pagination"]["page"] == 1
+        assert pag_data["pagination"]["per_page"] == 5
+        assert len(pag_data["links"]) <= 5
+        print(f"    Pagination metadata verified: total={pag_data['pagination']['total_count']}, pages={pag_data['pagination']['total_pages']}")
+
+    print("[11] Testing security blocking of dangerous scheme & private IP...")
+    sec_tests = ["javascript:alert(1)", "http://127.0.0.1", "http://192.168.1.1"]
+    for sec_url in sec_tests:
+        sec_payload = json.dumps({"url": sec_url}).encode("utf-8")
+        sec_req = urllib.request.Request(
+            f"{BASE_URL}/api/shorten",
+            data=sec_payload,
+            headers={"Content-Type": "application/json"}
+        )
+        try:
+            urllib.request.urlopen(sec_req)
+            assert False, f"Should have blocked {sec_url}"
+        except urllib.error.HTTPError as e:
+            assert e.code == 400
+    print("    Dangerous schemes and private IPs blocked with 400 as expected.")
+
     print("\n=======================================================")
-    print("SUCCESS: ALL 9 COMPREHENSIVE LIVE END-TO-END TESTS PASSED!")
+    print("SUCCESS: ALL 11 COMPREHENSIVE LIVE END-TO-END TESTS PASSED!")
     print("=======================================================")
 
 if __name__ == "__main__":

@@ -159,22 +159,74 @@ def record_click(short_code, user_agent=None, referrer=None, db_path=None):
     return get_url_by_id(url_id, db_path=db_path)
 
 
-def get_recent_urls(limit=20, db_path=None):
+def get_paginated_urls(page=1, per_page=25, db_path=None):
     """
-    Returns a list of recently shortened URLs ordered by creation date descending.
+    Retrieves paginated shortened URLs ordered by creation date descending.
+    Validates page and per_page parameters safely.
+    Returns:
+        dict: {
+            "items": list of dicts,
+            "page": int,
+            "per_page": int,
+            "total_count": int,
+            "total_pages": int,
+            "has_next": bool,
+            "has_prev": bool,
+        }
     """
+    # Sanitize and clamp page
+    try:
+        page = int(page)
+    except (ValueError, TypeError):
+        page = 1
+    if page < 1:
+        page = 1
+
+    # Sanitize and clamp per_page (between 1 and 100)
+    try:
+        per_page = int(per_page)
+    except (ValueError, TypeError):
+        per_page = 25
+    per_page = min(max(1, per_page), 100)
+
+    offset = (page - 1) * per_page
+
     with get_db(db_path) as conn:
+        count_cursor = conn.execute("SELECT COUNT(*) AS total FROM urls")
+        total_count = count_cursor.fetchone()["total"]
+
+        total_pages = max(1, (total_count + per_page - 1) // per_page) if total_count > 0 else 1
+
         cursor = conn.execute(
             """
             SELECT id, original_url, short_code, is_custom, clicks, created_at, last_clicked_at
             FROM urls
             ORDER BY id DESC
-            LIMIT ?
+            LIMIT ? OFFSET ?
             """,
-            (max(1, int(limit)),)
+            (per_page, offset)
         )
         rows = cursor.fetchall()
-        return [dict(r) for r in rows]
+        items = [dict(r) for r in rows]
+
+        return {
+            "items": items,
+            "page": page,
+            "per_page": per_page,
+            "total_count": total_count,
+            "total_pages": total_pages,
+            "has_next": page < total_pages,
+            "has_prev": page > 1,
+        }
+
+
+def get_recent_urls(limit=20, db_path=None):
+    """
+    Returns a list of recently shortened URLs ordered by creation date descending.
+    Preserved for backwards compatibility.
+    """
+    paginated = get_paginated_urls(page=1, per_page=limit, db_path=db_path)
+    return paginated["items"]
 
 
 def get_analytics_summary(db_path=None):

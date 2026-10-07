@@ -4,6 +4,7 @@ A modern, reliable, and secure URL shortening application with analytics.
 """
 
 import io
+import ipaddress
 import os
 import re
 import secrets
@@ -25,6 +26,7 @@ from database.db import (
     create_url,
     delete_url,
     get_analytics_summary,
+    get_paginated_urls,
     get_recent_urls,
     get_url_by_code,
     get_url_by_original,
@@ -67,6 +69,9 @@ CODE_LENGTH = 6
 CUSTOM_ALIAS_REGEX = re.compile(r"^[a-zA-Z0-9_-]{3,30}$")
 
 
+DANGEROUS_SCHEMES = ("javascript", "data", "file", "vbscript", "about")
+
+
 def validate_and_normalize_url(raw_url: str) -> tuple[bool, str, str]:
     """
     Validates and normalizes the input long URL.
@@ -80,6 +85,12 @@ def validate_and_normalize_url(raw_url: str) -> tuple[bool, str, str]:
     if len(cleaned_url) > 2048:
         return False, "", "URL is too long (maximum 2048 characters)."
 
+    # Reject dangerous or non-web schemes before any scheme manipulation
+    lower_cleaned = cleaned_url.lower()
+    for scheme in DANGEROUS_SCHEMES:
+        if lower_cleaned.startswith(f"{scheme}:"):
+            return False, "", f"Scheme '{scheme}:' is dangerous and not permitted."
+
     # Automatically prepend https:// if missing a scheme
     if not re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*://", cleaned_url):
         cleaned_url = f"https://{cleaned_url}"
@@ -89,18 +100,49 @@ def validate_and_normalize_url(raw_url: str) -> tuple[bool, str, str]:
     if parsed.scheme.lower() not in ("http", "https"):
         return False, "", "Only HTTP and HTTPS URLs are supported."
 
-    if not parsed.netloc:
+    # Extract hostname safely
+    host = (parsed.hostname or "").lower()
+    if not host:
         return False, "", "The URL must include a valid host or domain name."
 
-    # Validate hostname structure (allow localhost or domain with period)
-    host = parsed.netloc.split(":")[0].lower()
-    if host != "localhost" and "." not in host:
-        return False, "", "Please enter a valid domain name (e.g., example.com)."
+    # Reject localhost or local domain names
+    if host == "localhost" or host.endswith(".localhost"):
+        return False, "", "Shortening URLs targeting localhost or local network is not permitted."
 
-    # Prevent loop redirects to PyShort itself
-    current_host = request.host.split(":")[0].lower() if request.host else ""
-    if host == current_host or host in ("localhost", "127.0.0.1") and parsed.port == (request.port or 5000):
-        # Prevent shortening our own URLs
+    # Check for private, loopback, or reserved IP addresses
+    try:
+        ip = ipaddress.ip_address(host)
+        if (
+            ip.is_loopback
+            or ip.is_private
+            or ip.is_link_local
+            or ip.is_reserved
+            or ip.is_unspecified
+        ):
+            return (
+                False,
+                "",
+                "Shortening URLs targeting private or local IP addresses is not permitted.",
+            )
+    except ValueError:
+        # Host is a domain name, not an IP literal
+        if "." not in host:
+            return False, "", "Please enter a valid domain name (e.g., example.com)."
+
+    # Prevent loop redirects to PyShort itself (with explicit operator grouping)
+    current_host_parts = request.host.split(":") if request.host else [""]
+    current_host = current_host_parts[0].lower()
+    current_port = (
+        int(current_host_parts[1])
+        if len(current_host_parts) > 1
+        else (80 if request.scheme == "http" else 443)
+    )
+    target_port = parsed.port or (80 if parsed.scheme.lower() == "http" else 443)
+
+    if (
+        (host == current_host and (target_port == current_port))
+        or ((host in ("localhost", "127.0.0.1")) and (target_port == current_port))
+    ):
         return False, "", "You cannot shorten a PyShort short URL (prevents redirect loop)."
 
     return True, cleaned_url, ""
@@ -136,11 +178,13 @@ def build_full_short_url(short_code: str) -> str:
 @app.route("/")
 def index():
     """Renders the main dashboard page."""
-    recent_urls = get_recent_urls(limit=25)
+    page = request.args.get("page", 1, type=int)
+    paginated_data = get_paginated_urls(page=page, per_page=25)
     stats = get_analytics_summary()
     return render_template(
         "index.html",
-        recent_urls=recent_urls,
+        recent_urls=paginated_data["items"],
+        pagination=paginated_data,
         stats=stats,
         host_url=request.host_url,
     )
@@ -278,13 +322,32 @@ def api_shorten():
 
 @app.route("/api/links", methods=["GET"])
 def api_get_links():
-    """Returns list of recent shortened URLs with full short URL added."""
-    limit = request.args.get("limit", 50, type=int)
-    urls = get_recent_urls(limit=limit)
-    for u in urls:
+    """Returns paginated list of shortened URLs with full short URL added."""
+    page = request.args.get("page", 1, type=int)
+    # Support per_page parameter, or fallback to legacy limit parameter if passed
+    per_page = request.args.get("per_page", type=int)
+    if per_page is None:
+        per_page = request.args.get("limit", 25, type=int)
+
+    paginated = get_paginated_urls(page=page, per_page=per_page)
+    for u in paginated["items"]:
         u["short_url"] = build_full_short_url(u["short_code"])
         u["is_custom"] = bool(u["is_custom"])
-    return jsonify({"success": True, "links": urls})
+
+    return jsonify(
+        {
+            "success": True,
+            "links": paginated["items"],
+            "pagination": {
+                "page": paginated["page"],
+                "per_page": paginated["per_page"],
+                "total_count": paginated["total_count"],
+                "total_pages": paginated["total_pages"],
+                "has_next": paginated["has_next"],
+                "has_prev": paginated["has_prev"],
+            },
+        }
+    )
 
 
 @app.route("/api/links/<int:url_id>", methods=["DELETE"])
