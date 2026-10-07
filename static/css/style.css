@@ -234,7 +234,7 @@ body::before {
 .page-wrapper {
     max-width: 1100px;
     margin: 0 auto;
-    padding: 2.5rem 1.25rem 4rem;
+    padding: 1.75rem 1.25rem 3.5rem;
 }
 
 /* ==========================================================================
@@ -242,35 +242,35 @@ body::before {
    ========================================================================== */
 .hero-section {
     text-align: center;
-    margin-bottom: 3.5rem;
+    margin-bottom: 2.25rem;
 }
 
 .hero-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.35rem;
     background: rgba(99, 102, 241, 0.1);
     border: 1px solid rgba(99, 102, 241, 0.3);
-    padding: 0.35rem 0.9rem;
+    padding: 0.28rem 0.8rem;
     border-radius: 20px;
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     font-weight: 600;
     color: var(--primary);
-    margin-bottom: 1.25rem;
+    margin-bottom: 0.85rem;
     box-shadow: 0 0 15px rgba(99, 102, 241, 0.15);
 }
 
 .badge-sparkle {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
 }
 
 .hero-title {
     font-family: var(--font-heading);
-    font-size: 2.85rem;
+    font-size: 2.35rem;
     font-weight: 800;
     line-height: 1.15;
     letter-spacing: -0.03em;
-    margin-bottom: 1rem;
+    margin-bottom: 0.65rem;
 }
 
 .gradient-text {
@@ -280,10 +280,11 @@ body::before {
 }
 
 .hero-subtitle {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
     color: var(--text-secondary);
-    max-width: 640px;
-    margin: 0 auto 2.25rem;
+    max-width: 580px;
+    margin: 0 auto 1.5rem;
 }
 
 /* ==========================================================================
@@ -293,9 +294,9 @@ body::before {
     background: var(--bg-surface);
     border: 1px solid var(--border-card);
     border-radius: var(--radius-xl);
-    padding: 2rem;
+    padding: 1.25rem 1.5rem;
     box-shadow: var(--shadow-lg), var(--shadow-glow);
-    max-width: 780px;
+    max-width: 660px;
     margin: 0 auto;
     position: relative;
     backdrop-filter: blur(8px);
@@ -305,11 +306,11 @@ body::before {
 .input-container {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
     background: var(--bg-page);
     border: 2px solid var(--border-subtle);
-    border-radius: var(--radius-lg);
-    padding: 0.45rem 0.6rem 0.45rem 1rem;
+    border-radius: var(--radius-md);
+    padding: 0.25rem 0.35rem 0.25rem 0.85rem;
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
@@ -324,6 +325,11 @@ body::before {
     align-items: center;
 }
 
+.input-icon {
+    width: 18px;
+    height: 18px;
+}
+
 .url-input {
     flex: 1;
     background: transparent;
@@ -331,8 +337,8 @@ body::before {
     outline: none;
     color: var(--text-primary);
     font-family: var(--font-body);
-    font-size: 1rem;
-    padding: 0.6rem 0;
+    font-size: 0.92rem;
+    padding: 0.42rem 0;
 }
 
 .url-input::placeholder {
@@ -388,15 +394,17 @@ body::before {
 }
 
 .btn-submit {
-    min-width: 140px;
-    height: 48px;
-    border-radius: var(--radius-md);
+    min-width: 120px;
+    height: 38px;
+    font-size: 0.88rem;
+    padding: 0.4rem 0.95rem;
+    border-radius: var(--radius-sm);
 }
 
 .btn-spinner {
     display: none;
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-top-color: #ffffff;
     border-radius: 50%;
@@ -417,7 +425,7 @@ body::before {
 
 /* Custom Alias Toggle & Drawer */
 .alias-toggle-row {
-    margin-top: 1rem;
+    margin-top: 0.5rem;
     text-align: left;
 }
 
@@ -425,13 +433,13 @@ body::before {
     background: transparent;
     border: none;
     color: var(--text-secondary);
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 500;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.2rem 0;
+    gap: 0.35rem;
+    padding: 0.15rem 0;
     transition: color var(--transition-fast);
 }
 
@@ -448,7 +456,7 @@ body::before {
 }
 
 .alias-input-wrapper {
-    margin-top: 0.75rem;
+    margin-top: 0.4rem;
     text-align: left;
 }
 
@@ -457,9 +465,9 @@ body::before {
     align-items: center;
     background: var(--bg-page);
     border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-sm);
     overflow: hidden;
-    padding: 0.4rem 0.75rem;
+    padding: 0.28rem 0.65rem;
 }
 
 .alias-input-group:focus-within {
@@ -468,7 +476,7 @@ body::before {
 
 .alias-prefix {
     color: var(--text-muted);
-    font-size: 0.88rem;
+    font-size: 0.82rem;
     font-weight: 500;
     user-select: none;
     padding-right: 0.2rem;
@@ -481,13 +489,14 @@ body::before {
     outline: none;
     color: var(--text-primary);
     font-family: var(--font-body);
-    font-size: 0.92rem;
+    font-size: 0.85rem;
+    padding: 0.2rem 0;
 }
 
 .input-hint {
     display: block;
-    margin-top: 0.35rem;
-    font-size: 0.76rem;
+    margin-top: 0.25rem;
+    font-size: 0.72rem;
     color: var(--text-muted);
 }
 
@@ -495,9 +504,9 @@ body::before {
    Shortened Result Card
    ========================================================================== */
 .result-card {
-    margin-top: 1.75rem;
-    padding: 1.25rem 1.5rem;
-    border-radius: var(--radius-lg);
+    margin-top: 0.85rem;
+    padding: 0.85rem 1.1rem;
+    border-radius: var(--radius-md);
     background: var(--bg-surface-elevated);
     border: 1px solid var(--border-card);
     text-align: left;
@@ -519,32 +528,32 @@ body::before {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.85rem;
+    margin-bottom: 0.55rem;
 }
 
 .result-status {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    font-size: 0.9rem;
+    gap: 0.35rem;
+    font-size: 0.82rem;
     font-weight: 600;
     color: var(--success);
 }
 
 .status-icon {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     background: var(--success-bg);
     color: var(--success);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.8rem;
+    font-size: 0.72rem;
 }
 
 .result-timestamp {
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     color: var(--text-muted);
 }
 
@@ -552,21 +561,25 @@ body::before {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
     background: var(--bg-page);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
-    padding: 0.75rem 1rem;
+    padding: 0.45rem 0.75rem;
 }
 
 .short-url-link {
     font-family: var(--font-heading);
-    font-size: 1.15rem;
+    font-size: 0.95rem;
     font-weight: 600;
     color: var(--primary);
     text-decoration: none;
     letter-spacing: -0.01em;
-    word-break: break-all;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex: 1;
 }
 
 .short-url-link:hover {
@@ -575,24 +588,32 @@ body::before {
 
 .result-actions {
     display: flex;
-    gap: 0.5rem;
+    align-items: center;
+    gap: 0.35rem;
     flex-shrink: 0;
 }
 
 .btn-icon {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.45rem 0.75rem;
+    gap: 0.28rem;
+    padding: 0.32rem 0.58rem;
     border-radius: var(--radius-sm);
     background: var(--bg-surface-elevated);
     border: 1px solid var(--border-subtle);
     color: var(--text-primary);
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     font-weight: 500;
     cursor: pointer;
     text-decoration: none;
+    line-height: 1.2;
     transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.btn-icon svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
 }
 
 .btn-icon:hover {
@@ -602,10 +623,10 @@ body::before {
 }
 
 .result-details {
-    margin-top: 0.85rem;
+    margin-top: 0.5rem;
     display: flex;
-    gap: 0.5rem;
-    font-size: 0.85rem;
+    gap: 0.4rem;
+    font-size: 0.78rem;
 }
 
 .detail-label {
@@ -1420,33 +1441,46 @@ body::before {
 
 @media (max-width: 768px) {
     .hero-title {
-        font-size: 2.15rem;
+        font-size: 1.95rem;
+    }
+
+    .hero-subtitle {
+        font-size: 0.88rem;
+        margin-bottom: 1.25rem;
     }
 
     .shortener-card {
-        padding: 1.35rem 1.15rem;
+        padding: 1rem 0.9rem;
     }
 
     .input-container {
         flex-direction: column;
         align-items: stretch;
-        padding: 0.75rem;
+        padding: 0.5rem 0.65rem;
+        gap: 0.4rem;
     }
 
     .btn-submit {
         width: 100%;
-        margin-top: 0.5rem;
+        margin-top: 0.25rem;
+        height: 38px;
     }
 
     .short-url-box {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 0.85rem;
+        align-items: stretch;
+        gap: 0.6rem;
     }
 
     .result-actions {
         width: 100%;
         justify-content: space-between;
+        gap: 0.35rem;
+    }
+
+    .result-actions .btn-icon {
+        flex: 1;
+        justify-content: center;
     }
 
     .search-box {
